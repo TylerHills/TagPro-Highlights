@@ -99,10 +99,19 @@ class HighlightTool:
 	def downloadYoutubeVideo(self, ytLink):
 		self.status = "Fetching Youtube video"
 		print("Downloading Youtube...")
+		
 		yt = YouTube(ytLink)
 		self.outputFolder = "./fileGeneration/" + yt.title.replace(' ', '') + datetime.now().strftime("%d%m%y%H%M%S/")
 		os.mkdir(self.outputFolder)
-		yt.streams.first().download(output_path = self.outputFolder, filename = "source")
+				
+		for attempt in range(7):
+			try:
+				yt.streams.order_by('resolution').desc()[attempt].download(output_path = self.outputFolder, filename = "source")
+			except:
+				continue
+			else:
+				break
+
 		print("Download finished")
 	
 	def createHighlightFiles(self):
@@ -154,6 +163,12 @@ class HighlightTool:
 		resp = requests.post(url, files=vid_file, auth=(self.streamableAccount, self.streamablePassword), data={'title': file})
 		return resp.json()['shortcode']
 		
+		url = "https://api.streamable.com/upload"
+		file = "./fileGeneration/NLTPS16W6DNOvsREV080820001236/G1H1 - Bjird - cap4.mp4"
+		vid_file = {'file': open(file, 'rb')}
+		resp = requests.post(url, files=vid_file, auth=(acct, pas), data={'title': "G1H1 - Bjird - cap1"})
+		return resp.json()['shortcode']
+		
 	def displayLinks(self):
 		for shortcode in self.streamableShortcodes:
 			print("http://streamable.com/" + shortcode)
@@ -178,11 +193,11 @@ class Capture:
 		
 ###########################################################################################################################	
 
-yt = "https://youtu.be/TJn14fIaeck"
-#EUs = ["https://tagpro.eu/?match=2318215"]
-#halfStarts = ["0:10"]
-EUs = ["https://tagpro.eu/?match=2318215", "https://tagpro.eu/?match=2318235", "https://tagpro.eu/?match=2318265", "https://tagpro.eu/?match=2318280"]
-halfStarts = ["0:10", "16:07", "34:51", "49:52"]
+yt = "https://www.youtube.com/watch?v=TJn14fIaeck"
+EUs = ["https://tagpro.eu/?match=2318215"]
+halfStarts = ["0:10"]
+#EUs = ["https://tagpro.eu/?match=2318215", "https://tagpro.eu/?match=2318235", "https://tagpro.eu/?match=2318265", "https://tagpro.eu/?match=2318280"]
+#halfStarts = ["0:10", "16:07", "34:51", "49:52"]
 
 highlights = HighlightTool(yt, EUs, halfStarts)
 highlights.run()
